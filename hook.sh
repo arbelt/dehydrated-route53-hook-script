@@ -140,10 +140,14 @@ function find_zone() {
 
   local TESTDOMAIN="${DOMAIN}"
 
+  local zone_id
+
   while [[ -n "$TESTDOMAIN" ]]; do
     for zone in $ZONELIST; do
       if [[ "$zone" == "$TESTDOMAIN" ]]; then
-        echo "$zone"
+        #echo "$zone"
+        zone_id=$(cli53 list -format json | jq ".[]|select(.Config.PrivateZone|not)" | jq --raw-output "select(.Name == \"${zone}.\")|.Id")
+        echo ${zone_id#/hostedzone/}
         return 0
       fi
     done
@@ -165,3 +169,4 @@ HANDLER="$1"; shift
 if [[ "${HANDLER}" =~ ^(deploy_challenge|clean_challenge|deploy_cert|unchanged_cert|invalid_challenge|request_failure|exit_hook)$ ]]; then
   "$HANDLER" "$@"
 fi
+
